@@ -12,7 +12,7 @@ public class Application {
         //Step 1 – Create the ocean map
         createOceanMap();
 
-        //Step 2 – Deploy player’s ships "Hello world!"
+        //Step 2 – Deploy player’s ships
         deployPlayerShips();
 
         //Step 3 - Deploy computer's ships
