@@ -1,204 +1,227 @@
-import java.io.IOException;
+import battleships.BattleShips;
+
 import java.util.Scanner;
 
 public class Application {
 
 
-    static String playerName1 = "Player#1";
-    static String playerName2 = "Player#2";
-    static Scanner scanner = new Scanner(System.in);
-    static int[][] battlefield1 = new int[10][10];
-    static int[][] battlefield2 = new int[10][10];
-    static int[][] monitor1 = new int[10][10];
-    static int[][] monitor2 = new int[10][10];
 
-    public static void main(String[] args) {
-        System.out.println("Player#1, please enter your name:");
-        playerName1 = scanner.nextLine();
-        System.out.println("Player#2, please enter your name:");
-        playerName2 = scanner.nextLine();
-        placeShips(playerName1, battlefield1);
-        placeShips(playerName2, battlefield2);
-        while (true) {
-            makeTurn(playerName1, monitor1, battlefield2);
-            if (isWinCondition()) {
-                break;
+        public static class Battleships {
+            public static int numRows = 10;
+            public static int numCols = 10;
+            public static int playerShips;
+            public static int computerShips;
+            public static String[][] grid = new String[numRows][numCols];
+            public static int[][] missedGuesses = new int[numRows][numCols];
+
+            public static void main(String[] args){
+                Scanner scanner = new Scanner(System.in);
+                System.out.println("**** Welcome to Battle Ships game ****");
+                System.out.println("Right now, sea is empty\n");
+
+                //Step 1 – Create the ocean map
+                createOceanMap();
+
+                //Step 2 – Deploy player’s ships
+                deployPlayerShips();
+
+                //Step 3 - Deploy computer's ships
+                deployComputerShips();
+
+                //Step 4 Battle
+                do {
+                    Battle();
+                }while(BattleShips.Battleships.playerShips != 0 && BattleShips.Battleships.computerShips != 0);
+
+                //Step 5 - Game over
+                gameOver();
             }
-            makeTurn(playerName2, monitor2, battlefield1);
-            if (isWinCondition()) {
-                break;
-            }
-        }
 
-    }
+            public static void createOceanMap(){
+                //First section of Ocean Map
+                System.out.print("  ");
+                for(int i = 0; i < numCols; i++)
+                    System.out.print(i);
+                System.out.println();
 
-    public static void placeShips(String playerName, int[][] battlefield) {
-        int deck = 4;
-        while (deck >= 1) {
-            System.out.println();
-            System.out.println(playerName + ", please place your " + deck + "-deck ship on the battlefield:");
-            System.out.println();
-
-            drawField(battlefield);
-
-            System.out.println("Please enter OX coordinate:");
-            int x = scanner.nextInt();
-            System.out.println("Please enter OY coordinate:");
-            int y = scanner.nextInt();
-            System.out.println("Choose direction:");
-            System.out.println("1. Vertical.");
-            System.out.println("2. Horizontal.");
-            int direction = scanner.nextInt();
-            if (!isAvailable(x, y, deck, direction, battlefield)){
-                System.out.println("Wrong coordinates!");
-                continue;
-            }
-            for (int i = 0; i < deck; i++) {
-                if (direction == 1) {
-                    battlefield[x][y + i] = 1;
-                } else {
-                    battlefield[x + i][y] = 1;
-                }
-            }
-            deck--;
-            clearScreen();
-        }
-    }
-
-    public static void drawField(int[][] battlefield) {
-        System.out.println("  0 1 2 3 4 5 6 7 8 9");
-        for (int i = 0; i < battlefield.length; i++) {
-            System.out.print(i + " ");
-            for (int j = 0; j < battlefield[1].length; j++) {
-                if (battlefield[j][i] == 0) {
-                    System.out.print("- ");
-                } else {
-                    System.out.print("X ");
-                }
-            }
-            System.out.println();
-        }
-    }
-
-    public static void makeTurn(String playerName, int[][] monitor, int[][] battlefield) {
-        while (true) {
-            System.out.println(playerName + ", please, make your turn.");
-            System.out.println("  0 1 2 3 4 5 6 7 8 9");
-            for (int i = 0; i < monitor.length; i++) {
-                System.out.print(i + " ");
-                for (int j = 0; j < monitor[1].length; j++) {
-                    if (monitor[j][i] == 0) {
-                        System.out.print("- ");
-                    } else if (monitor[j][i] == 1) {
-                        System.out.print(". ");
-                    } else {
-                        System.out.print("X ");
+                //Middle section of Ocean Map
+                for(int i = 0; i < grid.length; i++) {
+                    for (int j = 0; j < grid[i].length; j++) {
+                        grid[i][j] = " ";
+                        if (j == 0)
+                            System.out.print(i + "|" + grid[i][j]);
+                        else if (j == grid[i].length - 1)
+                            System.out.print(grid[i][j] + "|" + i);
+                        else
+                            System.out.print(grid[i][j]);
                     }
+                    System.out.println();
                 }
+
+                //Last section of Ocean Map
+                System.out.print("  ");
+                for(int i = 0; i < numCols; i++)
+                    System.out.print(i);
                 System.out.println();
             }
-            System.out.println("Please enter OX coordinate:");
-            int x = scanner.nextInt();
-            System.out.println("Please enter OY coordinate:");
-            int y = scanner.nextInt();
-            if (battlefield[x][y] == 1) {
-                System.out.println("Hit! Make your turn again!");
-                monitor[x][y] = 2;
-            } else {
-                System.out.println("Miss! Your opponents turn!");
-                monitor[x][y] = 1;
-                break;
+
+            public static void deployPlayerShips(){
+                Scanner input = new Scanner(System.in);
+
+                System.out.println("\nDeploy your ships:");
+                //Deploying five ships for player
+                BattleShips.Battleships.playerShips = 5;
+                for (int i = 1; i <= BattleShips.Battleships.playerShips; ) {
+                    System.out.print("Enter X coordinate for your " + i + " ship: ");
+                    int x = input.nextInt();
+                    System.out.print("Enter Y coordinate for your " + i + " ship: ");
+                    int y = input.nextInt();
+
+                    if((x >= 0 && x < numRows) && (y >= 0 && y < numCols) && (grid[x][y] == " "))
+                    {
+                        grid[x][y] =   "@";
+                        i++;
+                    }
+                    else if((x >= 0 && x < numRows) && (y >= 0 && y < numCols) && grid[x][y] == "@")
+                        System.out.println("You can't place two or more ships on the same location");
+                    else if((x < 0 || x >= numRows) || (y < 0 || y >= numCols))
+                        System.out.println("You can't place ships outside the " + numRows + " by " + numCols + " grid");
+                }
+                printOceanMap();
             }
-            clearScreen();
+
+            public static void deployComputerShips(){
+                System.out.println("\nComputer is deploying ships");
+                //Deploying five ships for computer
+                BattleShips.Battleships.computerShips = 5;
+                for (int i = 1; i <= BattleShips.Battleships.computerShips; ) {
+                    int x = (int)(Math.random() * 10);
+                    int y = (int)(Math.random() * 10);
+
+                    if((x >= 0 && x < numRows) && (y >= 0 && y < numCols) && (grid[x][y] == " "))
+                    {
+                        grid[x][y] =   "x";
+                        System.out.println(i + ". ship DEPLOYED");
+                        i++;
+                    }
+                }
+                printOceanMap();
+            }
+
+            public static void Battle(){
+                playerTurn();
+                computerTurn();
+
+                printOceanMap();
+
+                System.out.println();
+                System.out.println("Your ships: " + BattleShips.Battleships.playerShips + " | Computer ships: " + BattleShips.Battleships.computerShips);
+                System.out.println();
+            }
+
+            public static void playerTurn(){
+                System.out.println("\nYOUR TURN");
+                int x = -1, y = -1;
+                do {
+                    Scanner input = new Scanner(System.in);
+                    System.out.print("Enter X coordinate: ");
+                    x = input.nextInt();
+                    System.out.print("Enter Y coordinate: ");
+                    y = input.nextInt();
+
+                    if ((x >= 0 && x < numRows) && (y >= 0 && y < numCols)) //valid guess
+                    {
+                        if (grid[x][y] == "x") //if computer ship is already there; computer loses ship
+                        {
+                            System.out.println("Boom! You sunk the ship!");
+                            grid[x][y] = "!"; //Hit mark
+                            --BattleShips.Battleships.computerShips;
+                        }
+                        else if (grid[x][y] == "@") {
+                            System.out.println("Oh no, you sunk your own ship :(");
+                            grid[x][y] = "x";
+                            --BattleShips.Battleships.playerShips;
+                            ++BattleShips.Battleships.computerShips;
+                        }
+                        else if (grid[x][y] == " ") {
+                            System.out.println("Sorry, you missed");
+                            grid[x][y] = "-";
+                        }
+                    }
+                    else if ((x < 0 || x >= numRows) || (y < 0 || y >= numCols))  //invalid guess
+                        System.out.println("You can't place ships outside the " + numRows + " by " + numCols + " grid");
+                }while((x < 0 || x >= numRows) || (y < 0 || y >= numCols));  //keep re-prompting till valid guess
+            }
+
+            public static void computerTurn(){
+                System.out.println("\nCOMPUTER'S TURN");
+                //Guess co-ordinates
+                int x = -1, y = -1;
+                do {
+                    x = (int)(Math.random() * 10);
+                    y = (int)(Math.random() * 10);
+        System.out.println("Hello world!!!!");
+        System.out.println("Second Hello World");
+                    if ((x >= 0 && x < numRows) && (y >= 0 && y < numCols)) //valid guess
+                    {
+                        if (grid[x][y] == "@") //if player ship is already there; player loses ship
+                        {
+                            System.out.println("The Computer sunk one of your ships!");
+                            grid[x][y] = "x";
+                            --BattleShips.Battleships.playerShips;
+                            ++BattleShips.Battleships.computerShips;
+                        }
+                        else if (grid[x][y] == "x") {
+                            System.out.println("The Computer sunk one of its own ships");
+                            grid[x][y] = "!";
+                        }
+                        else if (grid[x][y] == " ") {
+                            System.out.println("Computer missed");
+                            //Saving missed guesses for computer
+                            if(missedGuesses[x][y] != 1)
+                                missedGuesses[x][y] = 1;
+                        }
+                    }
+                }while((x < 0 || x >= numRows) || (y < 0 || y >= numCols));  //keep re-prompting till valid guess
+            }
+
+            public static void gameOver(){
+                System.out.println("Your ships: " + BattleShips.Battleships.playerShips + " | Computer ships: " + BattleShips.Battleships.computerShips);
+                if(BattleShips.Battleships.playerShips > 0 && BattleShips.Battleships.computerShips <= 0)
+                    System.out.println("Hooray! You won the battle :)");
+                else
+                    System.out.println("Sorry, you lost the battle");
+                System.out.println();
+            }
+
+            public static void printOceanMap(){
+                System.out.println();
+                //First section of Ocean Map
+                System.out.print("  ");
+                for(int i = 0; i < numCols; i++)
+                    System.out.print(i);
+                System.out.println();
+
+                //Middle section of Ocean Map
+                for(int x = 0; x < grid.length; x++) {
+                    System.out.print(x + "|");
+
+                    for (int y = 0; y < grid[x].length; y++){
+                        System.out.print(grid[x][y]);
+                    }
+
+                    System.out.println("|" + x);
+                }
+
+                //Last section of Ocean Map
+                System.out.print("  ");
+                for(int i = 0; i < numCols; i++)
+                    System.out.print(i);
+                System.out.println();
+            }
         }
     }
 
-    public static boolean isWinCondition() {
-        int counter1 = 0;
-        for (int i = 0; i < monitor1.length; i++) {
-            for (int j = 0; j < monitor1[i].length; j++) {
-                if (monitor1[i][j] == 2) {
-                    counter1++;
-                }
-            }
-        }
 
-        int counter2 = 0;
-        for (int i = 0; i < monitor2.length; i++) {
-            for (int j = 0; j < monitor2[i].length; j++) {
-                if (monitor2[i][j] == 2) {
-                    counter2++;
-                }
-            }
-        }
 
-        if (counter1 >= 10) {
-            System.out.println(playerName1 + " WIN!!!");
-            return true;
-        }
-        if (counter2 >= 10) {
-            System.out.println(playerName2 + " WIN!!!");
-            return true;
-        }
-        return false;
-    }
 
-    public static boolean isAvailable(int x, int y, int deck, int rotation, int[][] battlefield) {
-        // out of bound check
-        if (rotation == 1) {
-            if (y + deck > battlefield.length) {
-                return false;
-            }
-        }
-        if (rotation == 2){
-            if (x + deck > battlefield[0].length){
-                return false;
-            }
-        }
-
-        //neighbours check without diagonals
-        //XXXX
-        while (deck!=0){
-            for (int i = 0; i < deck; i++) {
-                int xi = 0;
-                int yi = 0;
-                if (rotation == 1){
-                    yi = i;
-                } else{
-                    xi = i;
-                }
-//                battlefield[x ][y];
-                if (x + 1 + xi < battlefield.length && x + 1 + xi >= 0){
-                    if (battlefield[x + 1 + xi][y + yi]!=0){
-                        return false;
-                    }
-                }
-                if (x - 1 + xi < battlefield.length && x - 1 + xi >= 0){
-                    if (battlefield[x - 1 + xi][y + yi]!=0){
-                        return false;
-                    }
-                }
-                if (y + 1 + yi < battlefield.length && y + 1 + yi >= 0){
-                    if (battlefield[x + xi][y + 1 + yi]!=0){
-                        return false;
-                    }
-                }
-                if (y - 1 + yi < battlefield.length && y - 1 + yi >= 0){
-                    if (battlefield[x + xi][y - 1 + yi]!=0){
-                        return false;
-                    }
-                }
-            }
-            deck--;
-        }
-        return true;
-    }
-
-    public static void clearScreen(){
-        try {
-            new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
-        } catch (InterruptedException | IOException e) {
-            e.printStackTrace();
-        }
-    }
-}
