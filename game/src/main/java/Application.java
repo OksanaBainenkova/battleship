@@ -1,11 +1,13 @@
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.Scanner;
 
 public class Application {
 
-
-    static String playerName1 = "Player#1";
-    static String playerName2 = "Player#2";
+    static String playerName1;
+    static String playerName2;
     static Scanner scanner = new Scanner(System.in);
     static int[][] battlefield1 = new int[10][10];
     static int[][] battlefield2 = new int[10][10];
@@ -29,7 +31,6 @@ public class Application {
                 break;
             }
         }
-
     }
 
     public static void placeShips(String playerName, int[][] battlefield) {
