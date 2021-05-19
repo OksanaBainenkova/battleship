@@ -19,6 +19,13 @@ public class Player {
         this.name = name;
     }
 
+    public Player(String name) {
+        this.name = name;
+    }
+
+    public Player() {
+    }
+
     @Override
     public String toString() {
         return "Person{" +

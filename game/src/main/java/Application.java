@@ -14,20 +14,24 @@ public class Application {
     static int[][] monitor1 = new int[10][10];
     static int[][] monitor2 = new int[10][10];
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws SQLException, ClassNotFoundException {
+        PlayerMapper playerMapper = new PlayerMapper(MysqlApplication.createConnection());
+        ScoreMapper scoreMapper = new ScoreMapper(MysqlApplication.createConnection());
         System.out.println("Player#1, please enter your name:");
         playerName1 = scanner.nextLine();
+        Player player1 = playerMapper.insert(new Player(playerName1));
         System.out.println("Player#2, please enter your name:");
         playerName2 = scanner.nextLine();
+        Player player2 = playerMapper.insert(new Player(playerName2));
         placeShips(playerName1, battlefield1);
         placeShips(playerName2, battlefield2);
         while (true) {
             makeTurn(playerName1, monitor1, battlefield2);
-            if (isWinCondition()) {
+            if (isWinCondition(player1, player2)) {
                 break;
             }
             makeTurn(playerName2, monitor2, battlefield1);
-            if (isWinCondition()) {
+            if (isWinCondition(player1, player2)) {
                 break;
             }
         }
@@ -50,7 +54,7 @@ public class Application {
             System.out.println("1. Vertical.");
             System.out.println("2. Horizontal.");
             int direction = scanner.nextInt();
-            if (!isAvailable(x, y, deck, direction, battlefield)){
+            if (!isAvailable(x, y, deck, direction, battlefield)) {
                 System.out.println("Wrong coordinates!");
                 continue;
             }
@@ -63,7 +67,6 @@ public class Application {
             }
             deck--;
             //check 1 deck ship
-            clearScreen();
         }
     }
 
@@ -111,11 +114,11 @@ public class Application {
                 monitor[x][y] = 1;
                 break;
             }
-            clearScreen();
         }
     }
 
-    public static boolean isWinCondition() {
+    public static boolean isWinCondition(Player player1, Player player2) throws SQLException, ClassNotFoundException {
+        ScoreMapper scoreMapper = new ScoreMapper(MysqlApplication.createConnection());
         int counter1 = 0;
         for (int i = 0; i < monitor1.length; i++) {
             for (int j = 0; j < monitor1[i].length; j++) {
@@ -135,6 +138,7 @@ public class Application {
         }
 
         if (counter1 >= 10) {
+            scoreMapper.insert(player1, player2, counter1, counter2);
             System.out.println(playerName1 + " WIN!!!");
             return true;
         }
@@ -152,41 +156,41 @@ public class Application {
                 return false;
             }
         }
-        if (rotation == 2){
-            if (x + deck > battlefield[0].length){
+        if (rotation == 2) {
+            if (x + deck > battlefield[0].length) {
                 return false;
             }
         }
 
         //neighbours check without diagonals
         //XXXX
-        while (deck!=0){
+        while (deck != 0) {
             for (int i = 0; i < deck; i++) {
                 int xi = 0;
                 int yi = 0;
-                if (rotation == 1){
+                if (rotation == 1) {
                     yi = i;
-                } else{
+                } else {
                     xi = i;
                 }
 //                battlefield[x ][y];
-                if (x + 1 + xi < battlefield.length && x + 1 + xi >= 0){
-                    if (battlefield[x + 1 + xi][y + yi]!=0){
+                if (x + 1 + xi < battlefield.length && x + 1 + xi >= 0) {
+                    if (battlefield[x + 1 + xi][y + yi] != 0) {
                         return false;
                     }
                 }
-                if (x - 1 + xi < battlefield.length && x - 1 + xi >= 0){
-                    if (battlefield[x - 1 + xi][y + yi]!=0){
+                if (x - 1 + xi < battlefield.length && x - 1 + xi >= 0) {
+                    if (battlefield[x - 1 + xi][y + yi] != 0) {
                         return false;
                     }
                 }
-                if (y + 1 + yi < battlefield.length && y + 1 + yi >= 0){
-                    if (battlefield[x + xi][y + 1 + yi]!=0){
+                if (y + 1 + yi < battlefield.length && y + 1 + yi >= 0) {
+                    if (battlefield[x + xi][y + 1 + yi] != 0) {
                         return false;
                     }
                 }
-                if (y - 1 + yi < battlefield.length && y - 1 + yi >= 0){
-                    if (battlefield[x + xi][y - 1 + yi]!=0){
+                if (y - 1 + yi < battlefield.length && y - 1 + yi >= 0) {
+                    if (battlefield[x + xi][y - 1 + yi] != 0) {
                         return false;
                     }
                 }
@@ -194,13 +198,5 @@ public class Application {
             deck--;
         }
         return true;
-    }
-
-    public static void clearScreen(){
-        try {
-            new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
-        } catch (InterruptedException | IOException e) {
-            e.printStackTrace();
-        }
     }
 }
