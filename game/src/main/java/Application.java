@@ -163,7 +163,7 @@ public class Application {
                 }
             }
         }
-
+        scoreMapper.insert(player1, player2, counter1, counter2);
         if (counter1 >= 10) {
             System.out.println(playerName1 + " WIN!!!");
             return true;
@@ -172,7 +172,6 @@ public class Application {
             System.out.println(playerName2 + " WIN!!!");
             return true;
         }
-        scoreMapper.insert(player1, player2, counter1, counter2);
         return false;
     }
 
