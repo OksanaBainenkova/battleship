@@ -39,7 +39,7 @@ public class Application {
 
     public static void placeShips(String playerName, int[][] battlefield) {
         int deck = 4;
-        while (deck >= 1) {
+        while (deck > 1) {
             System.out.println();
             System.out.println(playerName + ", please place your " + deck + "-deck ship on the battlefield:");
             System.out.println();
@@ -67,6 +67,33 @@ public class Application {
             }
             deck--;
             //check 1 deck ship
+        }
+        while (deck == 1) {
+            System.out.println();
+            System.out.println(playerName + ", please place your " + deck + "-deck ship on the battlefield:");
+            System.out.println();
+
+            drawField(battlefield);
+
+            System.out.println("Please enter OX coordinate:");
+            int x = scanner.nextInt();
+            System.out.println("Please enter OY coordinate:");
+            int y = scanner.nextInt();
+            int direction = 1;
+            if (!isAvailable(x, y, deck, direction, battlefield)) {
+                System.out.println("Wrong coordinates!");
+                continue;
+            }
+            for (int i = 0; i < deck; i++) {
+                if (direction == 1) {
+                    battlefield[x][y + i] = 1;
+                } else {
+                    battlefield[x + i][y] = 1;
+                }
+            }
+            drawField(battlefield);
+            deck--;
+            //check 1
         }
     }
 
@@ -138,7 +165,6 @@ public class Application {
         }
 
         if (counter1 >= 10) {
-            scoreMapper.insert(player1, player2, counter1, counter2);
             System.out.println(playerName1 + " WIN!!!");
             return true;
         }
@@ -146,6 +172,7 @@ public class Application {
             System.out.println(playerName2 + " WIN!!!");
             return true;
         }
+        scoreMapper.insert(player1, player2, counter1, counter2);
         return false;
     }
 
