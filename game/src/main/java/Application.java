@@ -187,9 +187,7 @@ public class Application {
                 return false;
             }
         }
-
-        //neighbours check without diagonals
-        //XXXX
+        
         while (deck != 0) {
             for (int i = 0; i < deck; i++) {
                 int xi = 0;
