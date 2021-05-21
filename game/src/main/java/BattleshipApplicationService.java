@@ -1,11 +1,7 @@
-import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.sql.SQLOutput;
 import java.util.Scanner;
 
-public class Application {
+public class BattleshipApplicationService {
 
     static String playerName1;
     static String playerName2;
@@ -15,30 +11,8 @@ public class Application {
     static int[][] monitor1 = new int[10][10];
     static int[][] monitor2 = new int[10][10];
 
-    public static void main(String[] args) throws SQLException, ClassNotFoundException {
-        PlayerMapper playerMapper = new PlayerMapper(MysqlApplication.createConnection());
-        ScoreMapper scoreMapper = new ScoreMapper(MysqlApplication.createConnection());
-        System.out.println("Player#1, please enter your name:");
-        playerName1 = scanner.nextLine();
-        Player player1 = playerMapper.insert(new Player(playerName1));
-        System.out.println("Player#2, please enter your name:");
-        playerName2 = scanner.nextLine();
-        Player player2 = playerMapper.insert(new Player(playerName2));
-        placeShips(playerName1, battlefield1);
-        placeShips(playerName2, battlefield2);
-        while (true) {
-            makeTurn(playerName1, monitor1, battlefield2, player1, player2);
-            if (isWinCondition(player1, player2)) {
-                break;
-            }
-            makeTurn(playerName2, monitor2, battlefield1, player1, player2);
-            if (isWinCondition(player1, player2)) {
-                break;
-            }
-        }
-    }
-
     public static void placeShips(String playerName, int[][] battlefield) {
+        Scanner scanner = new Scanner(System.in);
         int deck = 4;
         while (deck > 1) {
             System.out.println();
@@ -70,7 +44,6 @@ public class Application {
                 }
             }
             deck--;
-            //check 1 deck ship
         }
         while (deck == 1) {
             System.out.println();
@@ -97,9 +70,9 @@ public class Application {
             }
             drawField(battlefield);
             deck--;
-            //check 1
         }
     }
+
 
     public static void drawField(int[][] battlefield) {
         System.out.println("  0 1 2 3 4 5 6 7 8 9");
@@ -116,76 +89,8 @@ public class Application {
         }
     }
 
-    public static boolean isWinCondition(Player player1, Player player2) throws SQLException, ClassNotFoundException {
-        ScoreMapper scoreMapper = new ScoreMapper(MysqlApplication.createConnection());
-        int counter1 = 0;
-        for (int i = 0; i < monitor1.length; i++) {
-            for (int j = 0; j < monitor1[i].length; j++) {
-                if (monitor1[i][j] == 2) {
-                    counter1++;
-                }
-            }
-        }
-
-        int counter2 = 0;
-        for (int i = 0; i < monitor2.length; i++) {
-            for (int j = 0; j < monitor2[i].length; j++) {
-                if (monitor2[i][j] == 2) {
-                    counter2++;
-                }
-            }
-        }
-
-        scoreMapper.insert(player1, player2, counter1, counter2);
-        if (counter1 == 9 && counter2 != 9) {
-            System.out.println(playerName1 + " WIN!!!");
-            return true;
-        }
-        if (counter2 == 9 && counter1 != 9) {
-            System.out.println(playerName2 + " WIN!!!");
-            return true;
-        }
-        return false;
-    }
-
-    public static void makeTurn(String playerName, int[][] monitor, int[][] battlefield, Player player1, Player player2) throws SQLException, ClassNotFoundException {
-        while (true) {
-            System.out.println(playerName + ", please, make your turn.");
-            System.out.println("  0 1 2 3 4 5 6 7 8 9");
-            for (int i = 0; i < monitor.length; i++) {
-                System.out.print(i + " ");
-                for (int j = 0; j < monitor[1].length; j++) {
-                    if (monitor[j][i] == 0) {
-                        System.out.print("- ");
-                    } else if (monitor[j][i] == 1) {
-                        System.out.print(". ");
-                    } else {
-                        System.out.print("X ");
-                    }
-                }
-                System.out.println();
-            }
-            System.out.println("Please enter OX coordinate:");
-            int x = scanner.nextInt();
-            System.out.println("Please enter OY coordinate:");
-            int y = scanner.nextInt();
-            if (isWinCondition(player1, player2) == false) {
-                if (battlefield[x][y] == 1) {
-                    System.out.println("Hit! Make your turn again!");
-                    monitor[x][y] = 2;
-                } else {
-                    System.out.println("Miss! Your opponents turn!");
-                    monitor[x][y] = 1;
-                    break;
-                }
-            } else {
-                System.out.println("GAME OVER!");
-            }
-        }
-    }
-
     public static boolean isAvailable(int x, int y, int deck, int rotation, int[][] battlefield) {
-        // out of bound check
+
         if (rotation == 1) {
             if (y + deck > battlefield.length) {
                 return false;
@@ -205,7 +110,6 @@ public class Application {
         }
 
         //neighbours check without diagonals
-        //XXXX
         while (deck != 0) {
             for (int i = 0; i < deck; i++) {
                 int xi = 0;
@@ -215,7 +119,7 @@ public class Application {
                 } else {
                     xi = i;
                 }
-//                battlefield[x ][y];
+
                 if (x + 1 + xi < battlefield.length && x + 1 + xi >= 0) {
                     if (battlefield[x + 1 + xi][y + yi] != 0) {
                         return false;
@@ -240,5 +144,93 @@ public class Application {
             deck--;
         }
         return true;
+    }
+
+    public static boolean isWinCondition(Player player1, Player player2) throws SQLException, ClassNotFoundException {
+        ScoreMapper scoreMapper = new ScoreMapper(MysqlApplication.createConnection());
+        int counter1 = 0;
+        for (int i = 0; i < monitor1.length; i++) {
+            for (int j = 0; j < monitor1[i].length; j++) {
+                if (monitor1[i][j] == 2) {
+                    counter1++;
+                }
+            }
+        }
+
+        int counter2 = 0;
+        for (int i = 0; i < monitor2.length; i++) {
+            for (int j = 0; j < monitor2[i].length; j++) {
+                if (monitor2[i][j] == 2) {
+                    counter2++;
+                }
+            }
+        }
+
+        scoreMapper.insert(player1, player2, counter1, counter2);
+        if (counter1 >= 10 && counter2 != 10) {
+            System.out.println(playerName1 + " WINS!!!");
+            return true;
+        }
+        if (counter2 >= 10 && counter1 != 10) {
+            System.out.println(playerName2 + " WINS!!!");
+            return true;
+        }
+        return false;
+    }
+
+    public static void makeTurn(String playerName, int[][] monitor, int[][] battlefield, Player player1, Player player2) throws SQLException, ClassNotFoundException {
+        while (true) {
+            if (isWinCondition(player1, player2) == true) {
+                System.out.println("CONGRATULATIONS AND GAME OVER!");
+                System.out.println();
+                System.out.println("Here is your result:");
+                System.out.println();
+                System.out.println("  0 1 2 3 4 5 6 7 8 9");
+                for (int i = 0; i < monitor.length; i++) {
+                    System.out.print(i + " ");
+                    for (int j = 0; j < monitor[1].length; j++) {
+                        if (monitor[j][i] == 0) {
+                            System.out.print("- ");
+                        } else if (monitor[j][i] == 1) {
+                            System.out.print(". ");
+                        } else {
+                            System.out.print("X ");
+                        }
+                    }
+                    System.out.println();
+                }
+                break;
+            } else {
+                System.out.println(playerName + ", please, make your turn.");
+                System.out.println("  0 1 2 3 4 5 6 7 8 9");
+                for (int i = 0; i < monitor.length; i++) {
+                    System.out.print(i + " ");
+                    for (int j = 0; j < monitor[1].length; j++) {
+                        if (monitor[j][i] == 0) {
+                            System.out.print("- ");
+                        } else if (monitor[j][i] == 1) {
+                            System.out.print(". ");
+                        } else {
+                            System.out.print("X ");
+                        }
+                    }
+                    System.out.println();
+                }
+                System.out.println("Please enter OX coordinate:");
+                int x = scanner.nextInt();
+                System.out.println("Please enter OY coordinate:");
+                int y = scanner.nextInt();
+                if (isWinCondition(player1, player2) == false) {
+                    if (battlefield[x][y] == 1) {
+                        System.out.println("Hit! Make your turn again!");
+                        monitor[x][y] = 2;
+                    } else {
+                        System.out.println("Miss! Your opponents turn!");
+                        monitor[x][y] = 1;
+                        break;
+                    }
+                }
+            }
+        }
     }
 }
